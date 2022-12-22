@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Storage.Data;
 using Storage.Models;
+using System.Diagnostics;
 
 namespace Storage.Controllers
 {
@@ -30,17 +31,18 @@ namespace Storage.Controllers
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || context.Product == null)
+            if (id == null ||  context.Product == null)
             {
                 logger.LogInformation("Details not found for id {id}", id);
-                return View("Error");
+                return View("NotFound");
             }
 
             var product = await context.Product
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
-                return View("Error");
+                logger.LogInformation("A product with the following Id: {productId} does not exist in the database", product.Id);
+                return View("NotFound");
             }
 
             return View(product);
@@ -57,7 +59,7 @@ namespace Storage.Controllers
         {
             if (context.Product == null)
             {
-                return View("Error");
+                return View("NotFound");
             }
 
             IEnumerable<ProductViewModel> productViewInventory =
@@ -73,7 +75,7 @@ namespace Storage.Controllers
 
             if (productViewInventory == null)
             {
-                return View("Error");
+                return View("NotFound");
             }
 
             return View(productViewInventory);
@@ -139,7 +141,7 @@ namespace Storage.Controllers
             if (id == null || context.Product == null)
             {
                 logger.LogInformation("No id passed for edit");
-                return View("Error");
+                return View("NotFound");
             }
 
             var product = await context.Product.FindAsync(id);
@@ -147,7 +149,7 @@ namespace Storage.Controllers
             if (product == null)
             {
                 logger.LogInformation("Edit details not found for id {id}", id);
-                return View("Error");
+                return View("NotFound");
             }
             return View(product);
         }
@@ -164,7 +166,7 @@ namespace Storage.Controllers
                 logger.LogInformation("Id mismatch in passed information. " +
                 "Id value {id} did not match model value of {productId}",
                 id, product.Id);
-                return View("Error");
+                return View("NotFound");
             }
 
             if (ModelState.IsValid)
@@ -179,7 +181,7 @@ namespace Storage.Controllers
                     if (!ProductExists(product.Id))
                     {
                         logger.LogInformation("A product with the following Id: {productId} does not exist in the database", product.Id);
-                        return View("Error");
+                        return View("NotFound");
                     }
                     else
                     {
@@ -197,7 +199,7 @@ namespace Storage.Controllers
             if (id == null || context.Product == null)
             {
                 logger.LogInformation("No id value was passed for deletion.");
-                return View("Error");
+                return View("NotFound");
             }
 
             var product = await context.Product
@@ -206,7 +208,7 @@ namespace Storage.Controllers
             {
                 logger.LogInformation("Id to be deleted ({id}) does not exist in database.",
                 id);
-                return View("Error");
+                return View("NotFound");
             }
 
             return View(product);
@@ -234,6 +236,11 @@ namespace Storage.Controllers
         private bool ProductExists(int id)
         {
             return context.Product.Any(e => e.Id == id);
+        }
+        public IActionResult Error()
+        {
+           // return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View("NotFound");
         }
     }
 }
