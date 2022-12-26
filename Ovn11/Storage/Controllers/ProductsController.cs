@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Storage.Data;
 using Storage.Models;
-using System.Diagnostics;
+using Storage.Services;
 
 namespace Storage.Controllers
 {
@@ -15,25 +11,64 @@ namespace Storage.Controllers
     {
         private readonly StorageContext context;
         private readonly ILogger<ProductsController> logger;
+        private readonly ICategorySelectListService categorySelectListService;
 
-        public ProductsController(StorageContext context, ILogger<ProductsController> logger)
+        public ProductsController(StorageContext context,
+            ILogger<ProductsController> logger,
+            ICategorySelectListService categorySelectListService)
         {
             this.context = context;
             this.logger = logger;
+            this.categorySelectListService = categorySelectListService;
+        }
+        public async Task<IActionResult> FilterCategories(Product viewModel)
+        {
+            var products = string.IsNullOrWhiteSpace(viewModel.Name) ?
+                                    context.Product :
+                                    context.Product.Where(m => m.Name.StartsWith(viewModel.Name));
+
+            products = viewModel.Category is null ?
+                                products :
+                                products.Where(m => m.Category == viewModel.Category);
+
+            var categoryView = new Product()
+            {
+                //Id = m.Id,
+                //Name = m.Name,
+                //Price = m.Price,
+                //Orderdate = m.Orderdate,
+                //Category = m.Category,
+                //Shelf = m.Shelf,
+                //Count = m.Count,
+                //Description = m.Description,
+                Products = await products.ToListAsync(),
+                Categories = await categorySelectListService.GetCategoriesAsync()
+            };
+
+            return View(nameof(Index), categoryView);
         }
 
         // GET: Products
         public async Task<IActionResult> Index()
-        {
-            return View(await context.Product.OrderBy(p => p.Name).ToListAsync());
+        {           
+            var products = await context.Product.OrderBy(p => p.Name).ToListAsync();
+
+            var model = new Product
+            {
+                Products = products,
+            };
+
+            return View(model);
         }
 
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null ||  context.Product == null)
+            int? idLocal = id;
+
+            if (id == null || context.Product == null)
             {
-                logger.LogInformation("Details not found for id {id}", id);
+                logger.LogInformation("Details not found for id {id}", idLocal);
                 return View("NotFound");
             }
 
@@ -41,7 +76,7 @@ namespace Storage.Controllers
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
-                logger.LogInformation("A product with the following Id: {productId} does not exist in the database", product.Id);
+                logger.LogInformation(message: "product with the following Id: ${idLocal} does not exist in the database", idLocal);
                 return View("NotFound");
             }
 
@@ -164,7 +199,7 @@ namespace Storage.Controllers
             if (id != product.Id)
             {
                 logger.LogInformation("Id mismatch in passed information. " +
-                "Id value {id} did not match model value of {productId}",
+                "Id value {id} did not match model value of {product.id}",
                 id, product.Id);
                 return View("NotFound");
             }
@@ -239,8 +274,19 @@ namespace Storage.Controllers
         }
         public IActionResult Error()
         {
-           // return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
             return View("NotFound");
+        }
+        public async Task<IEnumerable<SelectListItem>> GetCategoriesAsync()
+        {
+            return await context.Product.Select(m => m.Category)
+                                .Distinct()
+                                .Select(g => new SelectListItem
+                                {
+                                    Text = g.ToString(),
+                                    Value = g.ToString()
+                                })
+                                .ToListAsync();
         }
     }
 }

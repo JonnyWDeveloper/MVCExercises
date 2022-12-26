@@ -1,25 +1,37 @@
-﻿@model IEnumerable<Storage.Models.Product>
+﻿@model Storage.Models.Product
+
+@inject ICategorySelectListService service
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Index";  
 }
 
 <h1>Index</h1>
-<form asp-action="Search">
+<form asp-action="FilterCategories">
     <div class="input-group mb-3">
-        <input type="text" name="searchString" class="form-control" placeholder="Sök på kategori" />
+        <input type="text" asp-for="Name" class="form-control" placeholder="Sök på kategori..." />
         <div class="input-group-append">
             <button type="submit" class="btn btn-outline-secondary">Sök</button>
         </div>
     </div>
+
+
+<div class="input-group-append">
+        <select class="form-control" asp-for="Category" asp-items="@await service.GetCategoriesAsync()">
+        <option selected="selected" value="">Please select</option>
+    </select>
+</div>
 </form>
-<p>
-    <a asp-action="Create">Create New</a>|
-    <a asp-action="Inventory">Inventory</a> 
+<p>    
+    <a asp-action="Create" class="btn btn-primary">Create</a>
+    <a asp-action="Inventory" class="btn btn-primary">Inventory</a>
 </p>
 <table class="table">
     <thead>
         <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
@@ -44,37 +56,6 @@
             <th></th>
         </tr>
     </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Orderdate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Category)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Shelf)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Count)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> |
-                </td>
-            </tr>
-        }
-    </tbody>
 </table>
+      
+<partial name="ProductsTablePartial" model="@Model.Products" />

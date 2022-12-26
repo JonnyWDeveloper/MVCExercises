@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Storage.Models;
-using System.Diagnostics;
 
 namespace Storage.Controllers
 {

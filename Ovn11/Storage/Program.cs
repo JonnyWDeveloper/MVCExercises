@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Storage.Services;
 using Storage.Data;
+
+
 namespace Storage
 {
     public class Program
@@ -24,25 +26,26 @@ namespace Storage
             //This method makes this an MVC application. (Add services to the container). 
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddScoped<ICategorySelectListService, CategorySelectListService>();
+
+
             //Builds the app.
             var app = builder.Build();
-          
-            // Configure the HTTP request pipeline.
-              app.UseDeveloperExceptionPage();
-      
-                /// Adds a middleware to the pipeline that will catch exceptions, log them, reset the request path, and re-execute the request.
-                /// The request will not be re-executed if the response has already started.
-                app.UseExceptionHandler("/Home/Error");
 
-                // The default HSTS value is 30 days. 
-                //You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                
-                //HTTP Strict Transport Security (HSTS) is a policy mechanism that helps
-                //to protect websites against man-in-the-middle attacks such as protocol downgrade attacks
-                //and cookie hijacking.
-                app.UseHsts();
-          
-              
+            // Configure the HTTP request pipeline.
+            app.UseDeveloperExceptionPage();
+
+            /// Adds a middleware to the pipeline that will catch exceptions, log them, reset the request path, and re-execute the request.
+            /// The request will not be re-executed if the response has already started.
+            app.UseExceptionHandler("/Home/Error");
+
+            // The default HSTS value is 30 days. 
+            //You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+
+            //HTTP Strict Transport Security (HSTS) is a policy mechanism that helps
+            //to protect websites against man-in-the-middle attacks such as protocol downgrade attacks
+            //and cookie hijacking.
+            app.UseHsts();
 
             // Adds middleware for redirecting HTTP Requests to HTTPS.
             app.UseHttpsRedirection();

@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿
+
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Storage.Models
 {
@@ -9,7 +12,11 @@ namespace Storage.Models
         //    get => Id;
         //    set => Id = value;
         //}
-        public string Name
+        [NotMapped]
+        public IEnumerable<Product> Products { get; set; } = new List<Product>();
+        [NotMapped]
+        public IEnumerable<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
+        public string? Name
         {
             get; set;
         }
@@ -25,6 +32,6 @@ namespace Storage.Models
         public int InventoryValue
         {
             get; set;
-        }      
+        }
     }
 }
